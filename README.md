@@ -1,3 +1,6 @@
+![photo-output](https://github.com/user-attachments/assets/3684c939-6e79-4218-92df-7ccbb1334cd3)
+
+
 # Greenie
 
 **Greenie** is an innovative application aimed at promoting recycling culture in Kuwait. The app offers unique and dynamic ways to recycle waste, helping users contribute to environmental protection.
@@ -25,8 +28,6 @@ Use **Greenie** and participate in making our world a better place. Together, we
 ---
 
 
-
-![text logo](https://github.com/user-attachments/assets/a089591b-5750-47f7-95b2-4eb5cc1bd7f6)
 
 
 
