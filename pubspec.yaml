@@ -1,21 +1,39 @@
-name: flutter_application_1
+name: greenie
 description: "A new Flutter project."
 publish_to: 'none'
 version: 0.1.0
 
 environment:
-  sdk: ^3.5.3
+  sdk: ^3.6.1
 
 dependencies:
   flutter:
     sdk: flutter
-  google_maps_flutter: ^2.0.6
-
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
-  flutter_lints: ^4.0.0
+  flutter_lints: ^5.0.0
 
 flutter:
   uses-material-design: true
+  assets:
+    - assets/Agrotech - branding.jpg
+    - assets/World environment day web template illustration with modern eco geometric nature mosaic green abstr | Premium Vector-2.jpg
+    - assets/1.png
+    - assets/pexels-alena-koval-233944-886521.jpg
+    - assets/pexels-asphotograpy-1002703.jpg
+    - assets/pexels-blooddrainer-566496.jpg
+    - assets/pexels-david-alberto-carmona-coto-434794-1151418.jpg
+    - assets/pexels-mahima-518693-1250260.jpg
+    - assets/pexels-mali-142497.jpg
+    - assets/pexels-mattycphoto-580900.jpg
+    - assets/pexels-obviouslyarthur-1296265.jpg
+    - assets/pexels-packermann-1666021.jpg
+    - assets/pexels-pixabay-459225.jpg
+    - assets/pexels-scottwebb-1048033.jpg
+    - assets/pexels-sohi-807598.jpg
+    - assets/pexels-umkreisel-app-957024.jpg
+    
+
+

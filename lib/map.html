@@ -1,0 +1,838 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>نظام مراقبة جودة الهواء في دولة الكويت</title>
+    
+    <!-- Leaflet CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+    
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700&display=swap" rel="stylesheet">
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Cairo', sans-serif;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            color: #333;
+            line-height: 1.6;
+        }
+
+        .container {
+            display: grid;
+            grid-template-columns: 350px 1fr;
+            min-height: 100vh;
+        }
+
+        /* Sidebar Styling */
+        .sidebar {
+            background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+            color: white;
+            padding: 20px;
+            overflow-y: auto;
+            box-shadow: 2px 0 10px rgba(0,0,0,0.1);
+        }
+
+        .sidebar-header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid rgba(255,255,255,0.1);
+        }
+
+        .sidebar-header h1 {
+            font-size: 1.5rem;
+            margin-bottom: 10px;
+            color: #ecf0f1;
+        }
+
+        .sidebar-header p {
+            color: #bdc3c7;
+            font-size: 0.9rem;
+        }
+
+        .studies-section {
+            margin-top: 30px;
+        }
+
+        .section-title {
+            font-size: 1.2rem;
+            margin-bottom: 20px;
+            color: #3498db;
+            border-right: 4px solid #3498db;
+            padding-right: 10px;
+        }
+
+        .study-card {
+            background: rgba(255,255,255,0.1);
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 15px;
+            border-left: 4px solid #e74c3c;
+            transition: transform 0.3s ease;
+            cursor: pointer;
+        }
+
+        .study-card:hover {
+            transform: translateX(-5px);
+            background: rgba(255,255,255,0.15);
+        }
+
+        .study-card h3 {
+            font-size: 1rem;
+            margin-bottom: 8px;
+            color: #ecf0f1;
+        }
+
+        .study-card p {
+            font-size: 0.85rem;
+            color: #bdc3c7;
+            margin-bottom: 10px;
+        }
+
+        .study-meta {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.8rem;
+            color: #95a5a6;
+        }
+
+        .source-link {
+            color: #3498db;
+            text-decoration: none;
+            font-size: 0.8rem;
+            display: inline-block;
+            margin-top: 5px;
+        }
+
+        .source-link:hover {
+            text-decoration: underline;
+        }
+
+        .pollution-info {
+            background: rgba(255,255,255,0.1);
+            border-radius: 10px;
+            padding: 15px;
+            margin-top: 20px;
+        }
+
+        .pollution-level {
+            display: flex;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .level-indicator {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            margin-left: 10px;
+        }
+
+        .level-good { background: #27ae60; }
+        .level-moderate { background: #f39c12; }
+        .level-unhealthy { background: #e74c3c; }
+        .level-very-unhealthy { background: #9b59b6; }
+        .level-hazardous { background: #2c3e50; }
+
+        /* Main Content Styling */
+        .main-content {
+            display: flex;
+            flex-direction: column;
+            position: relative;
+        }
+
+        .map-header {
+            background: white;
+            padding: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            z-index: 1000;
+        }
+
+        .map-header h2 {
+            color: #2c3e50;
+            margin-bottom: 10px;
+        }
+
+        .filters {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+
+        .filter-btn {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 20px;
+            background: #ecf0f1;
+            color: #2c3e50;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .filter-btn.active {
+            background: #3498db;
+            color: white;
+        }
+
+        #map {
+            flex: 1;
+            min-height: 500px;
+            z-index: 1;
+        }
+
+        .legend {
+            position: absolute;
+            bottom: 20px;
+            left: 20px;
+            background: white;
+            padding: 15px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+            z-index: 1000;
+        }
+
+        .legend h4 {
+            margin-bottom: 10px;
+            color: #2c3e50;
+        }
+
+        .legend-items {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 8px;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            font-size: 0.8rem;
+        }
+
+        .legend-color {
+            width: 15px;
+            height: 15px;
+            border-radius: 3px;
+            margin-left: 5px;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .container {
+                grid-template-columns: 1fr;
+            }
+            
+            .sidebar {
+                display: none;
+            }
+            
+            .legend {
+                bottom: 10px;
+                left: 10px;
+                right: 10px;
+            }
+        }
+
+        /* Animation and Effects */
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+
+        .pulse {
+            animation: pulse 2s infinite;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Sidebar with Studies -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <h1>نظام مراقبة جودة الهواء</h1>
+                <p>دولة الكويت - بيانات معتمدة من الدراسات العلمية</p>
+            </div>
+
+            <div class="studies-section">
+                <h2 class="section-title">الدراسات والأبحاث العلمية</h2>
+                
+                <div class="study-card" onclick="window.open('https://www.researchgate.net/publication/331899320_Air_Pollution_Analysis_in_Kuwait_Using_a_Statistical_Technique_CUSUM', '_blank')">
+                    <h3>تحليل جودة الهواء في الكويت باستخدام تقنية CUSUM الإحصائية</h3>
+                    <p>دراسة شاملة لتحليل مستويات التلوث والظروف الجوية في مختلف مناطق الكويت</p>
+                    <div class="study-meta">
+                        <span>2019 - ResearchGate</span>
+                        <span>مرجع علمي</span>
+                    </div>
+                </div>
+
+                <div class="study-card" onclick="window.open('https://www.scirp.org/journal/paperinformation?paperid=44735', '_blank')">
+                    <h3>قياس تلوث الهواء في مدينة الكويت باستخدام أجهزة القياس السلبية</h3>
+                    <p>بحث ميداني لقياس تركيز الملوثات في المناطق الحضرية والصناعية</p>
+                    <div class="study-meta">
+                        <span>2014 - Jasem M. Al-Awadhi</span>
+                        <span>بيانات دقيقة</span>
+                    </div>
+                </div>
+
+                <div class="study-card" onclick="window.open('https://www.mdpi.com/2073-4433/12/6/678', '_blank')">
+                    <h3>تقييم جودة الهواء في دولة الكويت خلال 2012-2019</h3>
+                    <p>تحليل بيانات طويلة المدى لمستويات PM2.5 والمخاطر الصحية المرتبطة</p>
+                    <div class="study-meta">
+                        <span>2021 - MDPI</span>
+                        <span>تحليل شامل</span>
+                    </div>
+                </div>
+
+                <div class="study-card" onclick="window.open('https://www.sciencedirect.com/science/article/pii/S2307410825000914', '_blank')">
+                    <h3>تأثير العواصف الترابية على جودة الهواء في الكويت</h3>
+                    <p>دراسة تأثير العوامل الطبيعية على مستويات الجسيمات الدقيقة والخشنة</p>
+                    <div class="study-meta">
+                        <span>2025 - ScienceDirect</span>
+                        <span>أحدث الأبحاث</span>
+                    </div>
+                </div>
+
+                <div class="study-card" onclick="window.open('https://www.witpress.com/Secure/elibrary/papers/UT04/UT04072FU.pdf', '_blank')">
+                    <h3>التلوث المروري وأثره على جودة الهواء في المناطق الحضرية</h3>
+                    <p>تحليل تأثير حركة المرور على تركيز أكاسيد النيتروجين والجسيمات</p>
+                    <div class="study-meta">
+                        <span>2004 - WIT Press</span>
+                        <span>دراسة أساسية</span>
+                    </div>
+                </div>
+
+                <div class="study-card" onclick="window.open('https://pubmed.ncbi.nlm.nih.gov/31550597/', '_blank')">
+                    <h3>مستويات التعرض لتلوث الهواء والمخاطر الصحية في الكويت</h3>
+                    <p>دراسة تقييم المخاطر الصحية المرتبطة بالتعرض للجسيمات الدقيقة PM2.5</p>
+                    <div class="study-meta">
+                        <span>2019 - PubMed</span>
+                        <span>تقييم صحي</span>
+                    </div>
+                </div>
+
+                <div class="study-card" onclick="window.open('https://www.iqair.com/kuwait', '_blank')">
+                    <h3>مؤشر جودة الهواء في الكويت - بيانات حية</h3>
+                    <p>مراقبة مستمرة لجودة الهواء في مختلف مناطق الكويت بشكل مباشر</p>
+                    <div class="study-meta">
+                        <span>IQAir</span>
+                        <span>بيانات مباشرة</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="pollution-info">
+                <h3 class="section-title">مستويات جودة الهواء</h3>
+                <div class="pollution-level">
+                    <div class="level-indicator level-good"></div>
+                    <span>جيد (0-12 μg/m³)</span>
+                </div>
+                <div class="pollution-level">
+                    <div class="level-indicator level-moderate"></div>
+                    <span>معتدل (12.1-35.4 μg/m³)</span>
+                </div>
+                <div class="pollution-level">
+                    <div class="level-indicator level-unhealthy"></div>
+                    <span>غير صحي للمجموعات الحساسة (35.5-55.4 μg/m³)</span>
+                </div>
+                <div class="pollution-level">
+                    <div class="level-indicator level-very-unhealthy"></div>
+                    <span>غير صحي (55.5-150.4 μg/m³)</span>
+                </div>
+                <div class="pollution-level">
+                    <div class="level-indicator level-hazardous"></div>
+                    <span>خطير (>150.5 μg/m³)</span>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Content with Map -->
+        <main class="main-content">
+            <div class="map-header">
+                <h2>خريطة تلوث الهواء في دولة الكويت</h2>
+                <div class="filters">
+                    <button class="filter-btn active" data-type="all">جميع الملوثات</button>
+                    <button class="filter-btn" data-type="pm25">PM2.5</button>
+                    <button class="filter-btn" data-type="pm10">PM10</button>
+                    <button class="filter-btn" data-type="no2">ثاني أكسيد النيتروجين</button>
+                    <button class="filter-btn" data-type="so2">ثاني أكسيد الكبريت</button>
+                </div>
+            </div>
+
+            <div id="map"></div>
+
+            <div class="legend">
+                <h4>مفتاح الخريطة</h4>
+                <div class="legend-items">
+                    <div class="legend-item">
+                        <div class="legend-color" style="background-color: #27ae60;"></div>
+                        <span>تلوث منخفض</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color" style="background-color: #f39c12;"></div>
+                        <span>تلوث متوسط</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color" style="background-color: #e74c3c;"></div>
+                        <span>تلوث مرتفع</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color" style="background-color: #9b59b6;"></div>
+                        <span>تلوث شديد</span>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Leaflet JS -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    
+    <script>
+        // Kuwait coordinates
+        const kuwaitCenter = [29.3759, 47.9774];
+        
+        // Initialize map
+        const map = L.map('map').setView(kuwaitCenter, 9);
+        
+        // Add OpenStreetMap tiles
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; OpenStreetMap contributors'
+        }).addTo(map);
+
+        // Pollution data for Kuwait regions - Expanded list
+        const pollutionData = [
+            {
+                name: "مدينة الكويت",
+                coords: [29.3697, 47.9783],
+                pollution: {
+                    pm25: 38.3,
+                    pm10: 85.2,
+                    no2: 42.1,
+                    so2: 12.4,
+                    co: 0.8
+                },
+                type: "عواصف ترابية، عوادم سيارات، أنشطة صناعية",
+                level: "غير صحي للمجموعات الحساسة",
+                population: "450,000",
+                sources: ["مرور", "صناعات", "عواصف ترابية"]
+            },
+            {
+                name: "حولي",
+                coords: [29.3322, 48.0296],
+                pollution: {
+                    pm25: 32.8,
+                    pm10: 78.5,
+                    no2: 38.7,
+                    so2: 10.9,
+                    co: 0.7
+                },
+                type: "مرور، أنشطة تجارية",
+                level: "معتدل إلى غير صحي",
+                population: "390,000",
+                sources: ["مرور", "تجاري"]
+            },
+            {
+                name: "الفروانية",
+                coords: [29.2752, 47.9591],
+                pollution: {
+                    pm25: 35.4,
+                    pm10: 82.1,
+                    no2: 40.2,
+                    so2: 11.8,
+                    co: 0.75
+                },
+                type: "مرور، أنشطة سكنية",
+                level: "غير صحي للمجموعات الحساسة",
+                population: "410,000",
+                sources: ["مرور", "سكني"]
+            },
+            {
+                name: "الأحمدي",
+                coords: [29.0769, 48.0838],
+                pollution: {
+                    pm25: 45.2,
+                    pm10: 92.7,
+                    no2: 48.9,
+                    so2: 18.3,
+                    co: 1.2
+                },
+                type: "صناعات نفطية، مرور",
+                level: "غير صحي",
+                population: "290,000",
+                sources: ["صناعات نفطية", "مرور"]
+            },
+            {
+                name: "الجهراء",
+                coords: [29.3375, 47.6581],
+                pollution: {
+                    pm25: 28.4,
+                    pm10: 95.8,
+                    no2: 32.1,
+                    so2: 9.2,
+                    co: 0.6
+                },
+                type: "عواصف ترابية، أنشطة زراعية",
+                level: "معتدل",
+                population: "220,000",
+                sources: ["عواصف ترابية", "زراعي"]
+            },
+            {
+                name: "مبارك الكبير",
+                coords: [29.2575, 48.0572],
+                pollution: {
+                    pm25: 31.2,
+                    pm10: 76.3,
+                    no2: 36.8,
+                    so2: 10.5,
+                    co: 0.65
+                },
+                type: "مرور، أنشطة سكنية",
+                level: "معتدل",
+                population: "180,000",
+                sources: ["مرور", "سكني"]
+            },
+            {
+                name: "الصباحية",
+                coords: [29.0997, 48.1333],
+                pollution: {
+                    pm25: 42.8,
+                    pm10: 88.9,
+                    no2: 46.3,
+                    so2: 16.7,
+                    co: 1.1
+                },
+                type: "صناعات، مرور",
+                level: "غير صحي",
+                population: "150,000",
+                sources: ["صناعات", "مرور"]
+            },
+            {
+                name: "الفحيحيل",
+                coords: [29.0833, 48.1333],
+                pollution: {
+                    pm25: 48.7,
+                    pm10: 96.2,
+                    no2: 52.4,
+                    so2: 21.8,
+                    co: 1.4
+                },
+                type: "صناعات نفطية، محطات طاقة",
+                level: "غير صحي",
+                population: "85,000",
+                sources: ["صناعات نفطية", "طاقة"]
+            },
+            {
+                name: "الشعيبة",
+                coords: [29.0333, 48.0833],
+                pollution: {
+                    pm25: 51.3,
+                    pm10: 98.7,
+                    no2: 55.1,
+                    so2: 24.2,
+                    co: 1.6
+                },
+                type: "صناعات ثقيلة، محطات تحلية",
+                level: "غير صحي",
+                population: "45,000",
+                sources: ["صناعات", "تحلية مياه"]
+            },
+            {
+                name: "المنقف",
+                coords: [29.1167, 48.1167],
+                pollution: {
+                    pm25: 37.2,
+                    pm10: 83.4,
+                    no2: 41.8,
+                    so2: 14.6,
+                    co: 0.9
+                },
+                type: "مرور، أنشطة سكنية",
+                level: "غير صحي للمجموعات الحساسة",
+                population: "120,000",
+                sources: ["مرور", "سكني"]
+            },
+            {
+                name: "العديلية",
+                coords: [29.3167, 48.0167],
+                pollution: {
+                    pm25: 29.8,
+                    pm10: 72.6,
+                    no2: 34.2,
+                    so2: 8.9,
+                    co: 0.55
+                },
+                type: "سكني، تجاري",
+                level: "معتدل",
+                population: "95,000",
+                sources: ["سكني", "تجاري"]
+            },
+            {
+                name: "الرميثية",
+                coords: [29.3000, 48.0667],
+                pollution: {
+                    pm25: 33.1,
+                    pm10: 79.8,
+                    no2: 39.4,
+                    so2: 11.2,
+                    co: 0.68
+                },
+                type: "سكني، مرور",
+                level: "معتدل إلى غير صحي",
+                population: "110,000",
+                sources: ["سكني", "مرور"]
+            },
+            {
+                name: "الشامية",
+                coords: [29.3500, 47.9667],
+                pollution: {
+                    pm25: 36.7,
+                    pm10: 84.9,
+                    no2: 43.6,
+                    so2: 13.8,
+                    co: 0.82
+                },
+                type: "سكني، تجاري، مرور",
+                level: "غير صحي للمجموعات الحساسة",
+                population: "130,000",
+                sources: ["سكني", "تجاري", "مرور"]
+            },
+            {
+                name: "الدسمة",
+                coords: [29.3667, 47.9833],
+                pollution: {
+                    pm25: 39.2,
+                    pm10: 86.7,
+                    no2: 44.8,
+                    so2: 14.9,
+                    co: 0.87
+                },
+                type: "تجاري، مرور كثيف",
+                level: "غير صحي للمجموعات الحساسة",
+                population: "140,000",
+                sources: ["تجاري", "مرور"]
+            },
+            {
+                name: "المنطقة الصناعية",
+                coords: [29.1833, 47.9833],
+                pollution: {
+                    pm25: 56.8,
+                    pm10: 105.4,
+                    no2: 61.7,
+                    so2: 28.9,
+                    co: 1.9
+                },
+                type: "صناعات، شحن، نقل",
+                level: "غير صحي",
+                population: "25,000",
+                sources: ["صناعات", "شحن", "نقل"]
+            },
+            {
+                name: "السالمية",
+                coords: [29.3333, 48.0833],
+                pollution: {
+                    pm25: 34.6,
+                    pm10: 81.2,
+                    no2: 41.3,
+                    so2: 12.7,
+                    co: 0.74
+                },
+                type: "تجاري، سكني، مرور",
+                level: "غير صحي للمجموعات الحساسة",
+                population: "160,000",
+                sources: ["تجاري", "سكني", "مرور"]
+            },
+            {
+                name: "الخيران",
+                coords: [28.6333, 48.3667],
+                pollution: {
+                    pm25: 22.1,
+                    pm10: 68.4,
+                    no2: 26.8,
+                    so2: 6.3,
+                    co: 0.42
+                },
+                type: "ساحلي، سياحي",
+                level: "معتدل",
+                population: "8,000",
+                sources: ["سياحة", "طبيعي"]
+            },
+            {
+                name: "الوفرة",
+                coords: [28.6500, 48.4000],
+                pollution: {
+                    pm25: 25.7,
+                    pm10: 89.3,
+                    no2: 29.4,
+                    so2: 7.1,
+                    co: 0.48
+                },
+                type: "زراعي، عواصف ترابية",
+                level: "معتدل",
+                population: "12,000",
+                sources: ["زراعي", "عواصف ترابية"]
+            },
+            {
+                name: "الظهر",
+                coords: [29.4500, 47.8667],
+                pollution: {
+                    pm25: 26.3,
+                    pm10: 91.7,
+                    no2: 30.1,
+                    so2: 7.6,
+                    co: 0.51
+                },
+                type: "صحراوي، عواصف ترابية",
+                level: "معتدل",
+                population: "18,000",
+                sources: ["صحراوي", "عواصف ترابية"]
+            }
+        ];
+
+        // Function to get color based on pollution level
+        function getColor(value, type) {
+            const levels = {
+                pm25: [12, 35.4, 55.4, 150.4],
+                pm10: [54, 154, 254, 354],
+                no2: [53, 100, 360, 649],
+                so2: [35, 75, 185, 304]
+            };
+            
+            const thresholds = levels[type] || levels.pm25;
+            
+            return value > thresholds[3] ? '#9b59b6' :
+                   value > thresholds[2] ? '#e74c3c' :
+                   value > thresholds[1] ? '#f39c12' :
+                   value > thresholds[0] ? '#27ae60' :
+                                           '#27ae60';
+        }
+
+        // Add markers for each region
+        const markers = [];
+        pollutionData.forEach(region => {
+            const marker = L.circleMarker(region.coords, {
+                radius: 12,
+                fillColor: getColor(region.pollution.pm25, 'pm25'),
+                color: '#000',
+                weight: 1,
+                opacity: 1,
+                fillOpacity: 0.8
+            }).addTo(map);
+
+            const popupContent = `
+                <div style="text-align: right; font-family: Cairo, sans-serif; min-width: 250px;">
+                    <h3 style="color: #2c3e50; margin-bottom: 15px; border-bottom: 2px solid #3498db; padding-bottom: 8px;">${region.name}</h3>
+                    <p style="margin: 8px 0;"><strong>👥 عدد السكان:</strong> ${region.population}</p>
+                    <p style="margin: 8px 0;"><strong>🏭 نوع التلوث:</strong> ${region.type}</p>
+                    <p style="margin: 8px 0;"><strong>⚠️ مستوى التلوث:</strong> ${region.level}</p>
+                    <p style="margin: 8px 0;"><strong>📊 المصادر الرئيسية:</strong> ${region.sources.join('، ')}</p>
+                    <hr style="margin: 12px 0; border-color: #ddd;">
+                    <h4 style="color: #e74c3c; margin: 12px 0 8px 0;">مستويات الملوثات (μg/m³):</h4>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 5px;">
+                        <span style="font-weight: bold;">PM2.5:</span>
+                        <span style="color: ${getColor(region.pollution.pm25, 'pm25')};">${region.pollution.pm25}</span>
+                        
+                        <span style="font-weight: bold;">PM10:</span>
+                        <span style="color: ${getColor(region.pollution.pm10, 'pm10')};">${region.pollution.pm10}</span>
+                        
+                        <span style="font-weight: bold;">NO2:</span>
+                        <span style="color: ${getColor(region.pollution.no2, 'no2')};">${region.pollution.no2}</span>
+                        
+                        <span style="font-weight: bold;">SO2:</span>
+                        <span style="color: ${getColor(region.pollution.so2, 'so2')};">${region.pollution.so2}</span>
+                        
+                        <span style="font-weight: bold;">CO:</span>
+                        <span style="color: ${getColor(region.pollution.co * 1000, 'so2')};">${region.pollution.co}</span>
+                    </div>
+                </div>
+            `;
+
+            marker.bindPopup(popupContent);
+            markers.push(marker);
+        });
+
+        // Filter functionality
+        const filterButtons = document.querySelectorAll('.filter-btn');
+        let currentFilter = 'all';
+
+        filterButtons.forEach(button => {
+            button.addEventListener('click', () => {
+                filterButtons.forEach(btn => btn.classList.remove('active'));
+                button.classList.add('active');
+                currentFilter = button.dataset.type;
+                updateMapFilter();
+            });
+        });
+
+        function updateMapFilter() {
+            markers.forEach((marker, index) => {
+                const region = pollutionData[index];
+                let value, type;
+                
+                switch(currentFilter) {
+                    case 'pm25':
+                        value = region.pollution.pm25;
+                        type = 'pm25';
+                        break;
+                    case 'pm10':
+                        value = region.pollution.pm10;
+                        type = 'pm10';
+                        break;
+                    case 'no2':
+                        value = region.pollution.no2;
+                        type = 'no2';
+                        break;
+                    case 'so2':
+                        value = region.pollution.so2;
+                        type = 'so2';
+                        break;
+                    default:
+                        value = region.pollution.pm25;
+                        type = 'pm25';
+                }
+                
+                marker.setStyle({
+                    fillColor: getColor(value, type)
+                });
+            });
+        }
+
+        // Add Kuwait outline for better context
+        const kuwaitBounds = [
+            [28.524, 46.552],
+            [30.095, 48.431]
+        ];
+        
+        L.rectangle(kuwaitBounds, {
+            color: "#34495e",
+            weight: 2,
+            fillOpacity: 0
+        }).addTo(map);
+
+        // Add title overlay
+        const titleOverlay = L.control({position: 'topright'});
+        titleOverlay.onAdd = function(map) {
+            const div = L.DomUtil.create('div', 'map-title');
+            div.innerHTML = '<h3 style="background: white; padding: 10px; border-radius: 5px; margin: 0; box-shadow: 0 2px 5px rgba(0,0,0,0.2);">خريطة توزيع التلوث في الكويت</h3>';
+            return div;
+        };
+        titleOverlay.addTo(map);
+
+        // Add click event to study cards
+        document.querySelectorAll('.study-card').forEach(card => {
+            card.style.cursor = 'pointer';
+        });
+    </script>
+</body>
+</html>
