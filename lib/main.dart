@@ -33,6 +33,28 @@ final List<String> images = [
     'assets/pexels-pixabay-459225.jpg',
     'assets/pexels-scottwebb-1048033.jpg',
  ];
+// --- نموذج بيانات منشور المجتمع ---
+class Post {
+  final String userName;
+  final String userAvatarUrl; // رابط صورة المستخدم الشخصية
+  final String timeAgo;
+  final String content;
+  final String? imageUrl; // صورة المنشور (اختيارية)
+  final int likes;
+  final int comments;
+  final int? points; // النقاط المكتسبة (اختيارية)
+
+  Post({
+    required this.userName,
+    required this.userAvatarUrl,
+    required this.timeAgo,
+    required this.content,
+    this.imageUrl,
+    required this.likes,
+    required this.comments,
+    this.points,
+  });
+}
 
 
 // --- متحكم الثيم (الوضع الداكن/الفاتح) ---
@@ -390,7 +412,9 @@ class CustomBottomNavigationBar extends StatelessWidget {
       items: const <BottomNavigationBarItem>[
         BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
         BottomNavigationBarItem(icon: Icon(Icons.recycling), label: 'Recycle'),
+        BottomNavigationBarItem(icon: Icon(Icons.people_outline), label: 'Community'),
         BottomNavigationBarItem(icon: Icon(Icons.settings), label: 'Settings'),
+     
       ],
       onTap: onTap,
     );
@@ -421,6 +445,7 @@ class _HomePageState extends State<HomePage> {
     _pages = [
       const HomeContent(),
       const RecycleContent(),
+      const CommunityPage(),
       const SettingsContent(),
     ];
   }
@@ -3051,6 +3076,222 @@ class _VolunteerFormSheetState extends State<VolunteerFormSheet> {
               ),
             ),
             const SizedBox(height: 20),
+          ],
+        ),
+      ),
+    );
+  }
+}
+// --- صفحة المجتمع ---
+class CommunityPage extends StatefulWidget {
+  const CommunityPage({super.key});
+
+  @override
+  _CommunityPageState createState() => _CommunityPageState();
+}
+
+class _CommunityPageState extends State<CommunityPage> {
+  // بيانات وهمية للمنشورات لعرضها في الواجهة
+  final List<Post> posts = [
+    Post(
+      userName: 'علياء خالد',
+      userAvatarUrl: 'https://images.pexels.com/photos/415829/pexels-photo-415829.jpeg',
+      timeAgo: 'منذ 5 دقائق',
+      content: 'فخورة بمشاركتي في حملة تنظيف شاطئ الشويخ اليوم! جمعنا أكثر من 50 كيس من المخلفات. شكراً لكل المتطوعين.',
+      imageUrl: 'https://images.pexels.com/photos/3671143/pexels-photo-3671143.jpeg',
+      likes: 28,
+      comments: 7,
+      points: 50,
+     ),
+    Post(
+      userName: 'محمد الأحمد',
+      userAvatarUrl: 'https://images.pexels.com/photos/220453/pexels-photo-220453.jpeg',
+      timeAgo: 'منذ ساعة',
+      content: 'تم زراعة 10 شتلات جديدة في حديقة الحي. خطوة صغيرة نحو كويت أكثر خضرة.',
+      imageUrl: 'https://images.pexels.com/photos/1151418/pexels-photo-1151418.jpeg',
+      likes: 45,
+      comments: 12,
+      points: 20,
+     ),
+    Post(
+      userName: 'فاطمة العلي',
+      userAvatarUrl: 'https://images.pexels.com/photos/774909/pexels-photo-774909.jpeg',
+      timeAgo: 'منذ 3 ساعات',
+      content: 'قمت بفرز النفايات في المنزل اليوم وتجهيزها لإعادة التدوير. شعور رائع بالمساهمة!',
+      likes: 19,
+      comments: 4,
+     ),
+  ];
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: ListView.builder(
+        padding: const EdgeInsets.all(8.0),
+        itemCount: posts.length,
+        itemBuilder: (context, index) {
+          return PostCard(post: posts[index]);
+        },
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () {
+          Navigator.push(context, MaterialPageRoute(builder: (_) => const AddPostPage()));
+        },
+        backgroundColor: AppColors.primaryGreen,
+        child: const Icon(Icons.add, color: Colors.white),
+      ),
+    );
+  }
+}
+
+// --- بطاقة عرض المنشور (واجهة مساعدة) ---
+class PostCard extends StatelessWidget {
+  final Post post;
+  const PostCard({super.key, required this.post});
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      margin: const EdgeInsets.symmetric(vertical: 8.0),
+      elevation: 3,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // 1. رأسية البطاقة (صورة واسم المستخدم)
+          Padding(
+            padding: const EdgeInsets.all(12.0),
+            child: Row(
+              children: [
+                CircleAvatar(
+                  radius: 22,
+                  backgroundImage: NetworkImage(post.userAvatarUrl),
+                ),
+                const SizedBox(width: 12),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(post.userName, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                    Text(post.timeAgo, style: TextStyle(color: Colors.grey.shade600, fontSize: 12)),
+                  ],
+                ),
+                const Spacer(),
+                if (post.points != null)
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: Colors.amber.shade100,
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    child: Row(
+                      children: [
+                        Icon(Icons.star, color: Colors.amber.shade700, size: 16),
+                        const SizedBox(width: 4),
+                        Text('+${post.points}', style: TextStyle(color: Colors.amber.shade800, fontWeight: FontWeight.bold)),
+                      ],
+                    ),
+                  ),
+              ],
+            ),
+          ),
+
+          // 2. محتوى المنشور (النص)
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+            child: Text(post.content, style: const TextStyle(fontSize: 15, height: 1.4)),
+          ),
+
+          // 3. صورة المنشور (إن وجدت)
+          if (post.imageUrl != null)
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 8.0),
+              child: ClipRRect(
+                child: Image.network(
+                  post.imageUrl!,
+                  width: double.infinity,
+                  height: 250,
+                  fit: BoxFit.cover,
+                ),
+              ),
+            ),
+
+          // 4. فاصل
+          const Divider(height: 1, indent: 16, endIndent: 16),
+
+          // 5. أزرار التفاعل
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceAround,
+              children: [
+                _buildInteractionButton(icon: Icons.thumb_up_outlined, label: '${post.likes} إعجاب', onPressed: () {}),
+                _buildInteractionButton(icon: Icons.comment_outlined, label: '${post.comments} تعليق', onPressed: () {}),
+                _buildInteractionButton(icon: Icons.share_outlined, label: 'مشاركة', onPressed: () {}),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildInteractionButton({required IconData icon, required String label, required VoidCallback onPressed}) {
+    return TextButton.icon(
+      onPressed: onPressed,
+      icon: Icon(icon, color: Colors.grey.shade700, size: 20),
+      label: Text(label, style: TextStyle(color: Colors.grey.shade800)),
+      style: TextButton.styleFrom(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+      ),
+    );
+  }
+}
+// --- صفحة إضافة منشور جديد ---
+class AddPostPage extends StatelessWidget {
+  const AddPostPage({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: appBarWithImage('مشاركة جديدة'),
+      body: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          children: [
+            const TextField(
+              decoration: InputDecoration(
+                hintText: 'بماذا ساهمت اليوم؟ صف عملك الخيري...',
+                border: OutlineInputBorder(),
+              ),
+              maxLines: 6,
+            ),
+            const SizedBox(height: 20),
+            OutlinedButton.icon(
+              onPressed: () {
+                // هنا تضاف وظيفة اختيار صورة من المعرض
+              },
+              icon: const Icon(Icons.add_photo_alternate_outlined),
+              label: const Text('إرفاق صورة'),
+              style: OutlinedButton.styleFrom(
+                minimumSize: const Size(double.infinity, 50),
+                foregroundColor: AppColors.primaryGreen,
+                side: const BorderSide(color: AppColors.primaryGreen),
+              ),
+            ),
+            const Spacer(),
+            ElevatedButton(
+              onPressed: () {
+                // هنا تضاف وظيفة حفظ المنشور والعودة لصفحة المجتمع
+                Navigator.of(context).pop();
+              },
+              style: ElevatedButton.styleFrom(
+                minimumSize: const Size(double.infinity, 50),
+                backgroundColor: AppColors.primaryGreen,
+                foregroundColor: Colors.white,
+              ),
+              child: const Text('نشر', style: TextStyle(fontSize: 18)),
+            ),
           ],
         ),
       ),
