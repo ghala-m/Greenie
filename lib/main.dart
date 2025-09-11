@@ -25,20 +25,14 @@ final List<String> titles = [
 ];
 
 final List<String> images = [
-    'assets/pexels-alena-koval-233944-886521.jpg',
-    'assets/pexels-asphotograpy-1002703.jpg',
-    'assets/pexels-blooddrainer-566496.jpg',
-    'assets/pexels-david-alberto-carmona-coto-434794-1151418.jpg',
-    'assets/pexels-mahima-518693-1250260.jpg',
+   
     'assets/pexels-mali-142497.jpg',
     'assets/pexels-mattycphoto-580900.jpg',
     'assets/pexels-obviouslyarthur-1296265.jpg',
     'assets/pexels-packermann-1666021.jpg',
     'assets/pexels-pixabay-459225.jpg',
     'assets/pexels-scottwebb-1048033.jpg',
-    'assets/pexels-sohi-807598.jpg',
-    'assets/pexels-umkreisel-app-957024.jpg',
-];
+ ];
 
 
 // --- متحكم الثيم (الوضع الداكن/الفاتح) ---
@@ -811,7 +805,7 @@ class _RecycleContentState extends State<RecycleContent> with TickerProviderStat
   ];
 
   // الطلب الحالي
-  RecycleOrder? _currentOrder = RecycleOrder(
+  final RecycleOrder? _currentOrder = RecycleOrder(
     id: 'REC003',
     date: DateTime.now(),
     materials: ['البلاستيك', 'الورق', 'الزجاج'],
@@ -821,7 +815,7 @@ class _RecycleContentState extends State<RecycleContent> with TickerProviderStat
   );
 
   // إجمالي النقاط
-  int _totalPoints = 500;
+  final int _totalPoints = 500;
 
   // المواد القابلة لإعادة التدوير
   final List<RecycleMaterial> _materials = [
@@ -2143,11 +2137,7 @@ class StudiesPage extends StatelessWidget {
   ];
 
   static const List<String> _studyImages = [
-    'assets/pexels-alena-koval-233944-886521.jpg'
-    'assets/pexels-asphotograpy-1002703.jpg'
-    'assets/pexels-blooddrainer-566496.jpg'
-    'assets/pexels-david-alberto-carmona-coto-434794-1151418.jpg'
-    'assets/pexels-mahima-518693-1250260.jpg'
+    
     'assets/pexels-mali-142497.jpg'
     'assets/pexels-mattycphoto-580900.jpg'
     'assets/pexels-obviouslyarthur-1296265.jpg'
